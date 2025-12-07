@@ -68,4 +68,78 @@ const getVehicleByIdService = async (id: number) => {
   return rows[0] || null;
 };
 
-export { createVehicleService, getAllVehiclesService, getVehicleByIdService };
+const updateVehicleService = async (vehicleId: number, input: VehicleInput) => {
+  const {
+    vehicle_name,
+    type,
+    registration_number,
+    daily_rent_price,
+    availability_status,
+  } = input;
+
+  // check if vehicle exists
+  const existing = await pool.query("SELECT * FROM vehicles WHERE id = $1", [
+    vehicleId,
+  ]);
+
+  if (existing.rows.length === 0) {
+    throw new Error("Vehicle not found");
+  }
+
+  // update ALL fields
+  const result = await pool.query(
+    `
+      UPDATE vehicles
+      SET 
+        vehicle_name = $1,
+        type = $2,
+        registration_number = $3,
+        daily_rent_price = $4,
+        availability_status = $5
+      WHERE id = $6
+      RETURNING id, vehicle_name, type, registration_number, daily_rent_price, availability_status
+    `,
+    [
+      vehicle_name,
+      type,
+      registration_number,
+      daily_rent_price,
+      availability_status,
+      vehicleId,
+    ]
+  );
+
+  return result.rows[0];
+};
+
+const deleteVehicleService = async (vehicleId: number) => {
+  // check if the vehicle exists
+  const result = await pool.query(
+    "SELECT availability_status FROM vehicles WHERE id = $1",
+    [vehicleId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error("Vehicle not found");
+  }
+
+  const vehicle = result.rows[0];
+
+  // prevent deletion if vehicle is booked
+  if (vehicle.availability_status === "booked") {
+    throw new Error("Vehicle cannot be deleted while it has an active booking");
+  }
+
+  // delete the vehicle
+  await pool.query("DELETE FROM vehicles WHERE id = $1", [vehicleId]);
+
+  return true;
+};
+
+export {
+  createVehicleService,
+  getAllVehiclesService,
+  getVehicleByIdService,
+  updateVehicleService,
+  deleteVehicleService,
+};

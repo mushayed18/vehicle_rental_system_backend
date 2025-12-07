@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
-import { createVehicleService, getAllVehiclesService, getVehicleByIdService } from "./vehicle.service";
+import {
+  createVehicleService,
+  getAllVehiclesService,
+  getVehicleByIdService,
+  updateVehicleService,
+  deleteVehicleService,
+} from "./vehicle.service";
 
 const createVehicle = async (req: Request, res: Response) => {
   try {
@@ -11,7 +17,6 @@ const createVehicle = async (req: Request, res: Response) => {
       availability_status,
     } = req.body;
 
-    
     if (
       !vehicle_name ||
       !type ||
@@ -100,7 +105,6 @@ const getVehicleById = async (req: Request, res: Response) => {
       message: "Vehicle retrieved successfully",
       data: vehicle,
     });
-
   } catch (error) {
     console.error("Error fetching vehicle by ID:", error);
 
@@ -111,4 +115,90 @@ const getVehicleById = async (req: Request, res: Response) => {
   }
 };
 
-export { createVehicle, getAllVehicles, getVehicleById };
+const updateVehicle = async (req: Request, res: Response) => {
+  try {
+    const { vehicleId } = req.params;
+    const {
+      vehicle_name,
+      type,
+      registration_number,
+      daily_rent_price,
+      availability_status,
+    } = req.body;
+
+    if (
+      !vehicle_name ||
+      !type ||
+      !registration_number ||
+      !daily_rent_price ||
+      !availability_status
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required for PUT update",
+      });
+    }
+
+    const updatedVehicle = await updateVehicleService(Number(vehicleId), {
+      vehicle_name,
+      type,
+      registration_number,
+      daily_rent_price,
+      availability_status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Vehicle updated successfully",
+      data: updatedVehicle,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const deleteVehicle = async (req: Request, res: Response) => {
+  try {
+    const { vehicleId } = req.params;
+
+    await deleteVehicleService(Number(vehicleId));
+
+    return res.status(200).json({
+      success: true,
+      message: "Vehicle deleted successfully",
+    });
+  } catch (error: any) {
+    if (error.message === "Vehicle not found") {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    if (
+      error.message ===
+      "Vehicle cannot be deleted while it has an active booking"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while deleting vehicle",
+    });
+  }
+};
+
+export {
+  createVehicle,
+  getAllVehicles,
+  getVehicleById,
+  updateVehicle,
+  deleteVehicle,
+};
