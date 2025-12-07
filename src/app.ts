@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import initDB from "./config/db";
 import authRoutes from "./modules/auth/auth.routes";
+import vehicleRoutes from "./modules/vehicle/vehicle.routes";
 
 const app = express();
 
@@ -10,12 +11,15 @@ initDB();
 // parser
 app.use(express.json());
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/api/v1/", (req: Request, res: Response) => {
   res.send("Vehicle rental system!");
 });
 
 // Auth routes
 app.use("/api/v1/auth", authRoutes);
+
+// Vehicle routes
+app.use("/api/v1/vehicles", vehicleRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

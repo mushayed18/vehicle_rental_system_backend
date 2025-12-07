@@ -1,0 +1,71 @@
+import { pool } from "../../config/db";
+
+interface VehicleInput {
+  vehicle_name: string;
+  type: "car" | "bike" | "van" | "SUV";
+  registration_number: string;
+  daily_rent_price: number;
+  availability_status: "available" | "booked";
+}
+
+const createVehicleService = async (input: VehicleInput) => {
+  const {
+    vehicle_name,
+    type,
+    registration_number,
+    daily_rent_price,
+    availability_status,
+  } = input;
+
+  // Check if registration number already exists
+  const existing = await pool.query(
+    "SELECT * FROM vehicles WHERE registration_number = $1",
+    [registration_number]
+  );
+
+  if (existing.rows.length > 0) {
+    throw new Error("Registration number already exists");
+  }
+
+  const result = await pool.query(
+    `INSERT INTO vehicles 
+      (vehicle_name, type, registration_number, daily_rent_price, availability_status)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, vehicle_name, type, registration_number, daily_rent_price, availability_status`,
+    [
+      vehicle_name,
+      type,
+      registration_number,
+      daily_rent_price,
+      availability_status,
+    ]
+  );
+
+  return result.rows[0];
+};
+
+const getAllVehiclesService = async () => {
+  const query = `
+    SELECT id, vehicle_name, type, registration_number, daily_rent_price, availability_status
+    FROM vehicles
+    ORDER BY id ASC;
+  `;
+
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
+const getVehicleByIdService = async (id: number) => {
+  const query = `
+    SELECT id, vehicle_name, type, registration_number, daily_rent_price, availability_status
+    FROM vehicles
+    WHERE id = $1
+    LIMIT 1;
+  `;
+
+  const { rows } = await pool.query(query, [id]);
+
+  return rows[0] || null;
+};
+
+export { createVehicleService, getAllVehiclesService, getVehicleByIdService };
