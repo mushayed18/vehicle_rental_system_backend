@@ -6,7 +6,7 @@ This system includes authentication, user management, vehicles, customers and bo
 ## 🌐 Live API Base URL
 
 ```
-https://
+https://vehicle-rental-system-backend-orcin.vercel.app/api/v1
 ```
 
 ---
@@ -64,14 +64,27 @@ https://
 
 ---
 
+Great — now I’ll rewrite your **Setup Instructions** section *professionally* and **specifically tailored to your project**, your scripts, your environment variables, and how your backend actually runs**.
+
+Here is the corrected and polished version 👇
+(Just copy–paste into your README.)
+
+---
+
 # ⚙️ Setup Instructions
+
+Follow these steps to run the Vehicle Rental System Backend on your local machine.
+
+---
 
 ## 1️⃣ Clone the repository
 
 ```sh
-git clone https://github.com/your-username/vehicle-rental-backend.git
-cd vehicle-rental-backend
+git clone https://github.com/mushayed18/vehicle_rental_system_backend.git
+cd vehicle_rental_system_backend
 ```
+
+---
 
 ## 2️⃣ Install dependencies
 
@@ -79,26 +92,48 @@ cd vehicle-rental-backend
 npm install
 ```
 
-## 3️⃣ Configure environment variables
+---
 
-Create `.env` file:
+## 3️⃣ Create and configure the `.env` file
 
-## 4️⃣ Run database migrations (if applicable)
+Inside the project root, create a `.env` file with the following environment variables:
 
-Create tables manually or using migration tools.
+```
+CONNECTION_STRING=your_postgresql_connection_url
+JWT_SECRET=your_secret_key
+PORT=8000
+```
+
+---
+
+## 4️⃣ Start the database (PostgreSQL)
+
+Make sure PostgreSQL is running.
+
+You must manually create the database:
+
+```sql
+CREATE DATABASE vehicle_rental;
+```
+
+Tables are automatically created on server start (because this code runs SQL CREATE TABLE IF NOT EXISTS).
+
+---
 
 ## 5️⃣ Start the development server
+
+dev script uses **tsx** to run TypeScript directly:
 
 ```sh
 npm run dev
 ```
 
-## 6️⃣ Start production build
+This starts:
 
-```sh
-npm run build
-npm start
+```
+src/server.ts
 ```
 
+and auto-restarts on changes.
 
-
+---
