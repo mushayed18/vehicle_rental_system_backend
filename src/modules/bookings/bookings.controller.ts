@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   createBookingService,
   getAllBookingsService,
+  updateBookingService,
 } from "./bookings.service";
 
 const createBooking = async (req: Request, res: Response) => {
@@ -75,4 +76,43 @@ const getAllBookings = async (req: Request, res: Response) => {
   }
 };
 
-export { createBooking, getAllBookings };
+const updateBooking = async (req: Request, res: Response) => {
+  try {
+    const bookingId = parseInt(req.params.bookingId as string);
+    const { status } = req.body;
+    const user = req.user as { id: number; role: "admin" | "customer" };
+
+    if (!status || (status !== "cancelled" && status !== "returned")) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be 'cancelled' or 'returned'",
+      });
+    }
+
+    const updatedBooking = await updateBookingService({
+      bookingId,
+      status,
+      user,
+    });
+
+    let message = "";
+    if (status === "cancelled") {
+      message = "Booking cancelled successfully";
+    } else if (status === "returned") {
+      message = "Booking marked as returned. Vehicle is now available";
+    }
+
+    return res.status(200).json({
+      success: true,
+      message,
+      data: updatedBooking,
+    });
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to update booking",
+    });
+  }
+};
+
+export { createBooking, getAllBookings, updateBooking };

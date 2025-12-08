@@ -103,4 +103,66 @@ const getAllBookingsService = async (user: JwtPayload) => {
   }
 };
 
-export { createBookingService, getAllBookingsService };
+interface UpdateBookingInput {
+  bookingId: number;
+  status: "cancelled" | "returned";
+  user: { id: number; role: "admin" | "customer" };
+}
+
+const updateBookingService = async (input: UpdateBookingInput) => {
+  const { bookingId, status, user } = input;
+
+  // Check if booking exists
+  const { rows: bookingRows } = await pool.query(
+    "SELECT * FROM bookings WHERE id = $1",
+    [bookingId]
+  );
+
+  if (bookingRows.length === 0) {
+    throw new Error("Booking not found");
+  }
+
+  const booking = bookingRows[0];
+
+  // Role-based rules
+  if (user.role === "customer" && booking.customer_id !== user.id) {
+    throw new Error("You can only modify your own bookings");
+  }
+
+  if (status === "cancelled" && user.role !== "customer" && user.role !== "admin") {
+    throw new Error("Only customers or admins can cancel bookings");
+  }
+
+  if (status === "returned" && user.role !== "admin") {
+    throw new Error("Only admins can mark bookings as returned");
+  }
+
+  // Update booking status
+  const { rows: updatedRows } = await pool.query(
+    `UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *`,
+    [status, bookingId]
+  );
+
+  const updatedBooking = updatedRows[0];
+
+  // Update vehicle availability if needed
+  if (status === "cancelled" || status === "returned") {
+    await pool.query(
+      `UPDATE vehicles SET availability_status = 'available' WHERE id = $1`,
+      [updatedBooking.vehicle_id]
+    );
+  }
+
+  // Include vehicle availability in response if returned
+  if (status === "returned") {
+    const { rows: vehicleRows } = await pool.query(
+      `SELECT availability_status FROM vehicles WHERE id = $1`,
+      [updatedBooking.vehicle_id]
+    );
+    updatedBooking.vehicle = vehicleRows[0];
+  }
+
+  return updatedBooking;
+};
+
+export { createBookingService, getAllBookingsService, updateBookingService };
