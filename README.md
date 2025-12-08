@@ -64,13 +64,6 @@ https://vehicle-rental-system-backend-orcin.vercel.app/api/v1
 
 ---
 
-Great — now I’ll rewrite your **Setup Instructions** section *professionally* and **specifically tailored to your project**, your scripts, your environment variables, and how your backend actually runs**.
-
-Here is the corrected and polished version 👇
-(Just copy–paste into your README.)
-
----
-
 # ⚙️ Setup Instructions
 
 Follow these steps to run the Vehicle Rental System Backend on your local machine.
